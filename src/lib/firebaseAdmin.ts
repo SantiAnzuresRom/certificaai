@@ -1,28 +1,18 @@
 import admin from "firebase-admin";
-import path from "path";
-import fs from "fs";
 
-const serviceAccountPath = path.join(
-  __dirname,
-  "serviceAccountKey.json"
-);
+if (!admin.apps.length) {
 
-if (!fs.existsSync(serviceAccountPath)) {
-  console.error(
-    "❌ No se encontró el archivo en:",
-    serviceAccountPath
-  );
-} else {
-  const serviceAccount = require(serviceAccountPath);
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-
-    console.log("🔥 Firebase Admin conectado");
-  }
+  console.log("🔥 Firebase Admin conectado");
 }
 
 export const adminAuth = admin.auth();
+
 export const adminDb = admin.firestore();
