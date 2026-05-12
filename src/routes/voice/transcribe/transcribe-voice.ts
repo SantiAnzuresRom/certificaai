@@ -29,6 +29,7 @@ if (!fs.existsSync("uploads")) {
 ========================= */
 
 const storage = multer.diskStorage({
+  
 
   destination: (
     req,
@@ -45,31 +46,29 @@ const storage = multer.diskStorage({
     cb
   ) => {
 
-    console.log(
-      "ORIGINAL NAME:",
-      file.originalname
-    );
+    console.log("MIME:", file.mimetype);
+    console.log("ORIGINAL:", file.originalname);
 
-    const extension =
-      path.extname(
-        file.originalname
-      ) || ".webm";
+    let extension = ".webm";
 
-    const filename =
-      `${Date.now()}${extension}`;
+    if (file.mimetype.includes("wav")) {
+      extension = ".wav";
+    }
 
-    console.log(
-      "FINAL FILE:",
-      filename
-    );
+    if (file.mimetype.includes("mp3")) {
+      extension = ".mp3";
+    }
+
+    if (file.mimetype.includes("ogg")) {
+      extension = ".ogg";
+    }
 
     cb(
       null,
-      filename
+      `${Date.now()}${extension}`
     );
   },
 });
-
 const upload = multer({
   storage,
 });
