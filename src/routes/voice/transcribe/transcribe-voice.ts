@@ -7,6 +7,7 @@ import {
 import OpenAI from "openai";
 import multer from "multer";
 import fs from "fs";
+import path from "path";
 
 const router = Router();
 
@@ -14,8 +15,38 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// IMPORTANTE:
+// guardar con extensión REAL
+
+const storage = multer.diskStorage({
+
+  destination: (
+    req,
+    file,
+    cb
+  ) => {
+
+    cb(null, "uploads/");
+  },
+
+  filename: (
+    req,
+    file,
+    cb
+  ) => {
+
+    const ext =
+      path.extname(file.originalname) || ".webm";
+
+    cb(
+      null,
+      `${Date.now()}${ext}`
+    );
+  },
+});
+
 const upload = multer({
-  dest: "uploads/",
+  storage,
 });
 
 router.post(
@@ -38,9 +69,15 @@ router.post(
         });
       }
 
-      const audioFile = fs.createReadStream(
-        req.file.path
+      console.log(
+        "FILE:",
+        req.file
       );
+
+      const audioFile =
+        fs.createReadStream(
+          req.file.path
+        );
 
       const transcription =
         await client.audio.transcriptions.create({
@@ -64,7 +101,10 @@ router.post(
 
     } catch (error: any) {
 
-      console.error("Whisper Error:", error);
+      console.error(
+        "Whisper Error:",
+        error
+      );
 
       return res.status(500).json({
         error:
