@@ -15,8 +15,18 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// IMPORTANTE:
-// guardar con extensión REAL
+/* =========================
+   CREAR CARPETA uploads
+========================= */
+
+if (!fs.existsSync("uploads")) {
+
+  fs.mkdirSync("uploads");
+}
+
+/* =========================
+   MULTER STORAGE
+========================= */
 
 const storage = multer.diskStorage({
 
@@ -35,12 +45,27 @@ const storage = multer.diskStorage({
     cb
   ) => {
 
-    const ext =
-      path.extname(file.originalname) || ".webm";
+    console.log(
+      "ORIGINAL NAME:",
+      file.originalname
+    );
+
+    const extension =
+      path.extname(
+        file.originalname
+      ) || ".webm";
+
+    const filename =
+      `${Date.now()}${extension}`;
+
+    console.log(
+      "FINAL FILE:",
+      filename
+    );
 
     cb(
       null,
-      `${Date.now()}${ext}`
+      filename
     );
   },
 });
@@ -48,6 +73,10 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
 });
+
+/* =========================
+   ROUTE
+========================= */
 
 router.post(
   "/",
@@ -62,6 +91,11 @@ router.post(
 
     try {
 
+      console.log(
+        "REQ FILE:",
+        req.file
+      );
+
       if (!req.file) {
 
         return res.status(400).json({
@@ -70,8 +104,18 @@ router.post(
       }
 
       console.log(
-        "FILE:",
-        req.file
+        "PATH:",
+        req.file.path
+      );
+
+      console.log(
+        "MIMETYPE:",
+        req.file.mimetype
+      );
+
+      console.log(
+        "SIZE:",
+        req.file.size
       );
 
       const audioFile =
@@ -93,6 +137,12 @@ router.post(
           temperature: 0.2,
         });
 
+      console.log(
+        "TRANSCRIPTION:",
+        transcription
+      );
+
+      // borrar archivo después
       fs.unlinkSync(req.file.path);
 
       return res.json({
@@ -102,13 +152,14 @@ router.post(
     } catch (error: any) {
 
       console.error(
-        "Whisper Error:",
+        "WHISPER ERROR:",
         error
       );
 
       return res.status(500).json({
+
         error:
-          error.message ||
+          error?.message ||
           "Error transcribing audio",
       });
     }
