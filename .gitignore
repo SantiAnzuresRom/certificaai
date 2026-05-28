@@ -1,5 +1,3 @@
-node_modules
-dist
+# Ignorar claves de Firebase
+**/serviceAccountKey.json
 .env
-src/lib/serviceAccountKey.json
-uploads
